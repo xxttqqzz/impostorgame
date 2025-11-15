@@ -172,10 +172,10 @@
 				<textarea
 					id="categories"
 					placeholder="Example:
-Doctor
-Detective
-Engineer
-Alien"
+Hospital
+School
+Airport
+Nightclub"
 				></textarea>
 			</div>
 
@@ -295,19 +295,48 @@ Alien"
 			hasShownRole = false;
 		}
 
+		// Build 3 options for the impostor, one of them is the real place
+		function getImpostorOptions() {
+			const unique = [...new Set(categories)];
+			if (unique.length === 0) return [];
+
+			// Make sure we have the real one
+			const real = commonCategory || unique[0];
+			const options = [real];
+
+			// Pool of other categories
+			const pool = unique.filter((c) => c !== real);
+
+			while (options.length < Math.min(3, unique.length) && pool.length > 0) {
+				const idx = Math.floor(Math.random() * pool.length);
+				options.push(pool[idx]);
+				pool.splice(idx, 1);
+			}
+
+			// Shuffle options
+			for (let i = options.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[options[i], options[j]] = [options[j], options[i]];
+			}
+
+			return options;
+		}
+
 		function showPlayerRole() {
 			const isImpostor = impostorIndexes.includes(currentPlayer);
 
 			if (isImpostor) {
+				const options = getImpostorOptions();
 				roleMainText.textContent = "YOU ARE THE IMPOSTOR";
-				roleSubText.textContent =
-					"Act innocent, lie, and try not to get caught.";
+				roleSubText.innerHTML =
+					`One of these places is the real one:<br>` +
+					`<span class="highlight-category">${options.join(" • ")}</span>`;
 				roleMainText.classList.add("highlight-impostor");
-				roleSubText.classList.remove("highlight-category");
+				roleSubText.classList.add("highlight-category");
 			} else {
 				roleMainText.textContent = "You are NOT the impostor";
 				roleSubText.innerHTML =
-					`Your category: <span class="highlight-category">${commonCategory}</span>`;
+					`Your place: <span class="highlight-category">${commonCategory}</span>`;
 				roleMainText.classList.remove("highlight-impostor");
 				roleSubText.classList.add("highlight-category");
 			}
